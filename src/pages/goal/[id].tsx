@@ -59,11 +59,6 @@ export default function CalendarView() {
 
   const { data: goal } = trpc.goal.getById.useQuery({ id }, { enabled: !!id });
 
-  const { data: days } = trpc.day.getDaysByGoalId.useQuery(
-    { id },
-    { enabled: !!id }
-  );
-
   const mutation = trpc.day.update.useMutation({
     onMutate: async (update) => {
       console.log("optimistic update", update);
