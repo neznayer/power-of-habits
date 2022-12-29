@@ -2,6 +2,7 @@ import { z } from "zod";
 import { protectedProcedure, router } from "../trpc";
 
 export const daySchema = z.object({
+  id: z.string().optional(),
   date: z.date({
     required_error: "Day date is required",
   }),

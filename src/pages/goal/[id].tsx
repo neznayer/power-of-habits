@@ -2,7 +2,8 @@ import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 import { trpc } from "../../utils/trpc";
 import { createContext } from "react";
-import { date } from "zod";
+import { daySchema } from "../../server/trpc/router/day";
+import { z } from "zod";
 
 const CalendarContext = createContext([]);
 
@@ -10,10 +11,31 @@ function daysInMonth(month: number, year: number) {
   return new Date(year, month, 0);
 }
 
-function DayCard({ day, onCheck, dayContent }) {
-  const golaId = useContext(CalendarContext);
+interface OnCheckInputI {
+  checked: boolean;
+  dayId?: string;
+  day: Date;
+  goalId: string;
+}
+
+function DayCard({
+  day,
+  onCheck,
+  dayContent,
+}: {
+  day: Date;
+  onCheck: ({}: OnCheckInputI) => void;
+  dayContent?: z.infer<typeof daySchema>;
+}) {
+  const goalId = useContext(CalendarContext) as unknown as string;
+
   function handleCheck(e) {
-    onCheck(e.target.checked, dayContent ? dayContent.id : "1", day, golaId);
+    onCheck({
+      checked: e.target.checked,
+      dayId: dayContent ? dayContent.id : "1",
+      day,
+      goalId,
+    });
   }
 
   return (
@@ -33,14 +55,10 @@ function DayCard({ day, onCheck, dayContent }) {
 export default function CalendarView() {
   const { query, isReady } = useRouter();
   const utils = trpc.useContext();
-  //const [goalState, setGoalState] = useState();
   const { id } = query;
-  const { data: goal } = trpc.goal.getById.useQuery({ id });
-  const mutation = trpc.day.update.useMutation().mutateAsync;
 
-  if (!id) {
-    return <div>Loading...</div>;
-  }
+  const { data: goal } = trpc.goal.getById.useQuery({ id }, { enabled: !!id });
+  const mutation = trpc.day.update.useMutation().mutateAsync;
 
   if (id && isReady && !goal) {
     return <div>Goal not found</div>;
@@ -50,8 +68,13 @@ export default function CalendarView() {
 
   const monthDays = daysInMonth(date.getMonth(), date.getFullYear());
 
-  async function onCheck(checked, id, date, goalId) {
-    await mutation({ done: checked, id, date, goalId });
+  async function onCheck(input: OnCheckInputI) {
+    await mutation({
+      done: input.checked,
+      id: input.dayId,
+      date: input.day,
+      goalId: input.goalId,
+    });
     utils.goal.invalidate();
   }
 
