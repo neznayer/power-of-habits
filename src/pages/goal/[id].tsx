@@ -58,7 +58,36 @@ export default function CalendarView() {
   const id = query.id as string;
 
   const { data: goal } = trpc.goal.getById.useQuery({ id }, { enabled: !!id });
-  const mutation = trpc.day.update.useMutation().mutateAsync;
+
+  const { data: days } = trpc.day.getDaysByGoalId.useQuery(
+    { id },
+    { enabled: !!id }
+  );
+
+  const mutation = trpc.day.update.useMutation({
+    onMutate: async (update) => {
+      console.log("optimistic update", update);
+      await utils.goal.getById.cancel();
+
+      const prevData = utils.day.getDaysByGoalId.getData({ id });
+
+      utils.goal.getById.setData({ id }, (old) => {
+        const optimisticDays = old?.days?.map((day) => {
+          if (day.id === update.id) {
+            return update;
+          } else {
+            return day;
+          }
+        });
+        return { ...old, days: optimisticDays };
+      });
+
+      return { prevData };
+    },
+    onSettled: () => {
+      utils.goal.getById.invalidate();
+    },
+  }).mutateAsync;
 
   if (id && isReady && !goal) {
     return <div>Goal not found</div>;
@@ -75,7 +104,6 @@ export default function CalendarView() {
       date: input.day,
       goalId: input.goalId,
     });
-    utils.goal.invalidate();
   }
 
   return (
