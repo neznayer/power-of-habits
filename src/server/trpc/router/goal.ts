@@ -4,7 +4,10 @@ import { protectedProcedure, router } from "../trpc";
 export const GoalSchema = z.object({
   title: z.string({ required_error: "A goal title is required" }),
   description: z.string().default(""),
+  id: z.string().optional(),
 });
+
+export type GoalType = z.infer<typeof GoalSchema>;
 
 export const goalRouter = router({
   create: protectedProcedure.input(GoalSchema).mutation(({ ctx, input }) => {

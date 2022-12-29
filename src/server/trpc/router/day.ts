@@ -38,32 +38,23 @@ export const dateRouter = router({
 
       return prisma.day.findMany({ where: { goalId: input.id } });
     }),
-  update: protectedProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        done: z.boolean(),
-        date: z.date().optional(),
-        goalId: z.string().optional(),
-      })
-    )
-    .mutation(({ ctx, input }) => {
-      const { prisma } = ctx;
+  update: protectedProcedure.input(daySchema).mutation(({ ctx, input }) => {
+    const { prisma } = ctx;
 
-      return prisma.day.upsert({
-        where: { id: input.id },
-        update: {
-          done: input.done,
-        },
-        create: {
-          done: input.done,
-          date: input.date,
-          goal: {
-            connect: {
-              id: input.goalId,
-            },
+    return prisma.day.upsert({
+      where: { id: input.id },
+      update: {
+        done: input.done,
+      },
+      create: {
+        done: input.done,
+        date: input.date,
+        goal: {
+          connect: {
+            id: input.goalId,
           },
         },
-      });
-    }),
+      },
+    });
+  }),
 });

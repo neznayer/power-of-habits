@@ -1,6 +1,5 @@
 import dayjs, { Dayjs } from "dayjs";
 import { useState } from "react";
-import { trpc } from "../utils/trpc";
 
 interface DayProps {
   date: Date;
@@ -8,8 +7,6 @@ interface DayProps {
 
 export function DayCard({ date }: DayProps) {
   const [done, setDone] = useState(false);
-
-  const query = trpc
 
   return (
     <div className="flex h-[60px] w-[50px] flex-col rounded border-gray-400">

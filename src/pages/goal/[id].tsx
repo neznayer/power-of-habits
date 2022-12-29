@@ -1,11 +1,11 @@
 import { useRouter } from "next/router";
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import { trpc } from "../../utils/trpc";
 import { createContext } from "react";
-import { daySchema } from "../../server/trpc/router/day";
-import { z } from "zod";
+import type { daySchema } from "../../server/trpc/router/day";
+import type { z } from "zod";
 
-const CalendarContext = createContext([]);
+const CalendarContext = createContext<string | undefined>("");
 
 function daysInMonth(month: number, year: number) {
   return new Date(year, month, 0);
@@ -29,7 +29,7 @@ function DayCard({
 }) {
   const goalId = useContext(CalendarContext) as unknown as string;
 
-  function handleCheck(e) {
+  function handleCheck(e: React.ChangeEvent<HTMLInputElement>) {
     onCheck({
       checked: e.target.checked,
       dayId: dayContent ? dayContent.id : "1",
@@ -55,7 +55,7 @@ function DayCard({
 export default function CalendarView() {
   const { query, isReady } = useRouter();
   const utils = trpc.useContext();
-  const { id } = query;
+  const id = query.id as string;
 
   const { data: goal } = trpc.goal.getById.useQuery({ id }, { enabled: !!id });
   const mutation = trpc.day.update.useMutation().mutateAsync;

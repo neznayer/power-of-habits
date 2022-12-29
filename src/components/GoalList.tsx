@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { FaTimes } from "react-icons/fa";
+import type { GoalType } from "../server/trpc/router/goal";
 import { trpc } from "../utils/trpc";
 
-function Goal({ goal }) {
+function Goal({ goal }: { goal: GoalType }) {
   const utils = trpc.useContext();
   const mutation = trpc.goal.deleteById.useMutation().mutateAsync;
 
-  async function handleDelete(id) {
+  async function handleDelete(id: string | undefined) {
+    if (!id) return;
     await mutation({ id });
     utils.goal.getAll.invalidate();
   }
@@ -25,7 +27,7 @@ function Goal({ goal }) {
     </tr>
   );
 }
-export function GoalList({ goals }) {
+export function GoalList({ goals }: { goals: GoalType[] | undefined }) {
   return (
     <>
       {goals && (
