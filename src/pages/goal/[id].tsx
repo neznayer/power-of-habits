@@ -4,6 +4,7 @@ import { trpc } from "../../utils/trpc";
 import { createContext } from "react";
 import type { daySchema } from "../../server/trpc/router/day";
 import type { z } from "zod";
+import { Checkbox } from "../../components/Checkbox";
 
 const CalendarContext = createContext<string | undefined>("");
 
@@ -29,9 +30,9 @@ function DayCard({
 }) {
   const goalId = useContext(CalendarContext) as unknown as string;
 
-  function handleCheck(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleCheck(checked: boolean) {
     onCheck({
-      checked: e.target.checked,
+      checked,
       dayId: dayContent ? dayContent.id : "1",
       day,
       goalId,
@@ -41,12 +42,9 @@ function DayCard({
   return (
     <div className="flex flex-col border-2 border-solid border-amber-400 text-sm">
       <p>{day.getDate()}</p>
-      <input
-        type="checkbox"
-        name="done"
-        id="done"
+      <Checkbox
         checked={dayContent ? dayContent.done : false}
-        onChange={handleCheck}
+        onCheck={handleCheck}
       />
     </div>
   );
