@@ -1,10 +1,11 @@
 import { useRouter } from "next/router";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { trpc } from "../../utils/trpc";
 import { createContext } from "react";
 import type { daySchema } from "../../server/trpc/router/day";
 import type { z } from "zod";
 import { Checkbox } from "../../components/Checkbox";
+import { useReward } from "react-rewards";
 
 const CalendarContext = createContext<string | undefined>("");
 
@@ -23,14 +24,28 @@ function DayCard({
   day,
   onCheck,
   dayContent,
+  id,
 }: {
   day: Date;
   onCheck: ({}: OnCheckInputI) => void;
   dayContent?: z.infer<typeof daySchema>;
+  id: number;
 }) {
+  const { reward: confettiReward, isAnimating: isConfettiAnimating } =
+    useReward("" + id, "confetti", {
+      startVelocity: 15,
+      lifetime: 70,
+      decay: 0.9,
+      spread: 180,
+    });
+
+  // const [isChecked, setIsChecked] = useState(false);
   const goalId = useContext(CalendarContext) as unknown as string;
 
   function handleCheck(checked: boolean) {
+    if (checked) {
+      confettiReward();
+    }
     onCheck({
       checked,
       dayId: dayContent ? dayContent.id : "1",
@@ -42,6 +57,7 @@ function DayCard({
   return (
     <div className="flex flex-col border-2 border-solid border-amber-400 text-sm">
       <p>{day.getDate()}</p>
+      <span id={"" + id} />
       <Checkbox
         checked={dayContent ? dayContent.done : false}
         onCheck={handleCheck}
@@ -107,6 +123,7 @@ export default function CalendarView() {
           {[...Array(monthDays.getDate()).keys()].map((thisday) => (
             <DayCard
               key={thisday}
+              id={thisday}
               onCheck={onCheck}
               day={new Date(date.getFullYear(), date.getMonth(), thisday - 1)}
               dayContent={goal?.days.find(
