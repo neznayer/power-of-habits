@@ -1,14 +1,16 @@
 import { useRouter } from "next/router";
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { trpc } from "../../utils/trpc";
 import { createContext } from "react";
 import type { daySchema } from "../../server/trpc/router/day";
 import type { z } from "zod";
 import { Checkbox } from "../../components/Checkbox";
 import { useReward } from "react-rewards";
+import { CalendarLayout } from "../layouts/calendar";
 
 const CalendarContext = createContext<string | undefined>("");
 
+const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 function daysInMonth(month: number, year: number) {
   return new Date(year, month, 0);
 }
@@ -25,21 +27,21 @@ function DayCard({
   onCheck,
   dayContent,
   id,
+  isToday,
 }: {
   day: Date;
   onCheck: ({}: OnCheckInputI) => void;
   dayContent?: z.infer<typeof daySchema>;
   id: number;
+  isToday: boolean;
 }) {
-  const { reward: confettiReward, isAnimating: isConfettiAnimating } =
-    useReward("" + id, "confetti", {
-      startVelocity: 15,
-      lifetime: 70,
-      decay: 0.9,
-      spread: 180,
-    });
+  const { reward: confettiReward } = useReward("" + id, "confetti", {
+    startVelocity: 15,
+    lifetime: 70,
+    decay: 0.9,
+    spread: 180,
+  });
 
-  // const [isChecked, setIsChecked] = useState(false);
   const goalId = useContext(CalendarContext) as unknown as string;
 
   function handleCheck(checked: boolean) {
@@ -55,27 +57,38 @@ function DayCard({
   }
 
   return (
-    <div className="flex flex-col border-2 border-solid border-amber-400 text-sm">
+    <div
+      className={
+        "flex flex-col text-sm" +
+        (isToday && " rounded border-2 border-orange-200")
+      }
+    >
       <p>{day.getDate()}</p>
-      <span id={"" + id} />
+
       <Checkbox
         checked={dayContent ? dayContent.done : false}
         onCheck={handleCheck}
+        id={"" + id}
       />
     </div>
   );
 }
 
 export default function CalendarView() {
-  const { query, isReady } = useRouter();
+  const { query } = useRouter();
   const utils = trpc.useContext();
   const id = query.id as string;
 
-  const { data: goal } = trpc.goal.getById.useQuery({ id }, { enabled: !!id });
+  const today = new Date(Date.now());
+
+  const {
+    data: goal,
+    isLoading,
+    isLoadingError,
+  } = trpc.goal.getById.useQuery({ id }, { enabled: !!id });
 
   const mutation = trpc.day.update.useMutation({
     onMutate: async (update) => {
-      console.log("optimistic update", update);
       await utils.goal.getById.cancel();
 
       const prevData = utils.day.getDaysByGoalId.getData({ id });
@@ -98,7 +111,11 @@ export default function CalendarView() {
     },
   }).mutateAsync;
 
-  if (id && isReady && !goal) {
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (isLoadingError) {
     return <div>Goal not found</div>;
   }
 
@@ -115,27 +132,55 @@ export default function CalendarView() {
     });
   }
 
+  const rows = Math.ceil(monthDays.getDate() / 7);
   return (
-    <>
+    <CalendarLayout>
       <h2>{goal?.title}</h2>
-      <section className="grid grid-cols-7 gap-5">
-        <CalendarContext.Provider value={goal?.id}>
-          {[...Array(monthDays.getDate()).keys()].map((thisday) => (
-            <DayCard
-              key={thisday}
-              id={thisday}
-              onCheck={onCheck}
-              day={new Date(date.getFullYear(), date.getMonth(), thisday - 1)}
-              dayContent={goal?.days.find(
-                (day) =>
-                  day.date.getFullYear() === date.getFullYear() &&
-                  day.date.getMonth() === date.getMonth() &&
-                  day.date.getDate() === thisday - 1
-              )}
-            />
-          ))}
-        </CalendarContext.Provider>
-      </section>
-    </>
+      <table>
+        <thead>
+          <tr>
+            {daysOfWeek.map((day) => {
+              return <th key={day}>{day}</th>;
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          <CalendarContext.Provider value={goal?.id}>
+            {[...Array(rows).keys()].map((row) => {
+              return (
+                <tr key={row}>
+                  {[...Array(7).keys()].map((cell) => {
+                    const thisday = row * 7 + cell;
+                    return (
+                      <td key={`${row}-${cell}`}>
+                        <DayCard
+                          key={thisday}
+                          id={thisday}
+                          onCheck={onCheck}
+                          day={
+                            new Date(
+                              date.getFullYear(),
+                              date.getMonth(),
+                              thisday - 1
+                            )
+                          }
+                          isToday={thisday === today.getDate() + 1}
+                          dayContent={goal?.days.find(
+                            (day) =>
+                              day.date.getFullYear() === date.getFullYear() &&
+                              day.date.getMonth() === date.getMonth() &&
+                              day.date.getDate() === thisday - 1
+                          )}
+                        />
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </CalendarContext.Provider>
+        </tbody>
+      </table>
+    </CalendarLayout>
   );
 }

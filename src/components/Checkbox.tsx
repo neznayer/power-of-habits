@@ -4,10 +4,12 @@ export function Checkbox({
   checked,
   title = "",
   onCheck,
+  id,
 }: {
   checked: boolean;
   title?: string;
   onCheck: (checked: boolean) => void;
+  id: string | undefined;
 }) {
   const handleCheck = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -18,7 +20,7 @@ export function Checkbox({
     <label className={styles.container}>
       {title}
       <input type="checkbox" checked={checked} onChange={handleCheck} />
-      <span className={styles.checkmark}></span>
+      <span className={styles.checkmark} id={id}></span>
     </label>
   );
 }
