@@ -94,6 +94,12 @@ export default function CalendarView() {
       const prevData = utils.day.getDaysByGoalId.getData({ id });
 
       utils.goal.getById.setData({ id }, (old) => {
+        const isNewDay = !old?.days.some((day) => day.id === update.id);
+
+        if (isNewDay) {
+          return { ...old, days: [...old?.days, update] };
+        }
+
         const optimisticDays = old?.days?.map((day) => {
           if (day.id === update.id) {
             return update;
