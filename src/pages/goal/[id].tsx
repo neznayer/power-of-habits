@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { trpc } from "../../utils/trpc";
 import { createContext } from "react";
 import type { daySchema } from "../../server/trpc/router/day";
@@ -7,13 +7,11 @@ import type { z } from "zod";
 import { Checkbox } from "../../components/Checkbox";
 import { useReward } from "react-rewards";
 import { CalendarLayout } from "../layouts/calendar";
+import { MonthControl } from "../../components/MonthControl";
 
 const CalendarContext = createContext<string | undefined>("");
 
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-function daysInMonth(month: number, year: number) {
-  return new Date(year, month, 0);
-}
 
 interface OnCheckInputI {
   checked: boolean;
@@ -78,6 +76,22 @@ export default function CalendarView() {
   const { query } = useRouter();
   const utils = trpc.useContext();
   const id = query.id as string;
+  const today = new Date(Date.now());
+  const [month, setMonth] = useState(today.getMonth());
+  const [year, setYear] = useState(today.getFullYear());
+
+  const [firstDayOfWeek, setFirstDayOfWeek] = useState(
+    new Date(today.getFullYear(), today.getMonth(), 1).getDay()
+  );
+
+  const [calendarMonth, setCalendarMonth] = useState(
+    new Date(today.getFullYear(), today.getMonth())
+  );
+
+  useEffect(() => {
+    setFirstDayOfWeek(new Date(year, month, 1).getDay());
+    setCalendarMonth(new Date(year, month));
+  }, [month, year]);
 
   const {
     data: goal,
@@ -92,20 +106,22 @@ export default function CalendarView() {
       const prevData = utils.day.getDaysByGoalId.getData({ id });
 
       utils.goal.getById.setData({ id }, (old) => {
-        const isNewDay = !old?.days.some((day) => day.id === update.id);
+        if (old) {
+          const isNewDay = !old?.days.some((day) => day.id === update.id);
 
-        if (isNewDay) {
-          return { ...old, days: [...old?.days, update] };
-        }
-
-        const optimisticDays = old?.days?.map((day) => {
-          if (day.id === update.id) {
-            return update;
-          } else {
-            return day;
+          if (isNewDay) {
+            return { ...old, days: [...old?.days, update] };
           }
-        });
-        return { ...old, days: optimisticDays };
+
+          const optimisticDays = old?.days?.map((day) => {
+            if (day.id === update.id) {
+              return update;
+            } else {
+              return day;
+            }
+          });
+          return { ...old, days: optimisticDays };
+        }
       });
 
       return { prevData };
@@ -133,16 +149,18 @@ export default function CalendarView() {
   }
 
   const rows = 6;
-  const year = 2023;
-  const month = 0;
-
-  const today = new Date(Date.now());
-  const firstDayOfWeek = new Date(year, month, 1).getDay();
 
   return (
     <CalendarLayout>
       <h2>{goal?.title}</h2>
       <h3>{goal.description}</h3>
+      {calendarMonth.getFullYear()}
+      <MonthControl
+        onMonthDecrease={() => setMonth(month - 1)}
+        onMonthIncrease={() => setMonth(month + 1)}
+        monthText={calendarMonth.toLocaleString("en-us", { month: "long" })}
+      />
+
       <table>
         <thead>
           <tr>
@@ -159,21 +177,30 @@ export default function CalendarView() {
                   {[...Array(7).keys()].map((cell) => {
                     const thisday = row * 7 + cell + 1;
 
-                    if (thisday >= firstDayOfWeek) {
+                    const currentDay = new Date(
+                      year,
+                      month,
+                      thisday - firstDayOfWeek
+                    );
+                    if (thisday > firstDayOfWeek) {
                       return (
                         <td key={`${row}-${cell}`}>
                           <DayCard
                             key={thisday}
                             id={thisday}
                             onCheck={onCheck}
-                            day={new Date(year, month, thisday)}
-                            isToday={thisday === today.getDate()}
+                            day={currentDay}
+                            isToday={
+                              currentDay.getDate() === today.getDate() &&
+                              currentDay.getMonth() === today.getMonth() &&
+                              currentDay.getFullYear() === today.getFullYear()
+                            }
                             dayContent={goal?.days.find(
                               (day) =>
                                 day.date.getFullYear() ===
-                                  today.getFullYear() &&
-                                day.date.getMonth() === today.getMonth() &&
-                                day.date.getDate() === today.getDate()
+                                  currentDay.getFullYear() &&
+                                day.date.getMonth() === currentDay.getMonth() &&
+                                day.date.getDate() === currentDay.getDate()
                             )}
                           />
                         </td>

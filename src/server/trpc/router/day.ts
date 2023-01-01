@@ -8,6 +8,8 @@ export const daySchema = z.object({
   }),
   done: z.boolean(),
   goalId: z.string({ required_error: "Goal id needs to be set" }),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
 });
 
 export const dateRouter = router({
