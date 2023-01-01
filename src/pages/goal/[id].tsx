@@ -79,8 +79,6 @@ export default function CalendarView() {
   const utils = trpc.useContext();
   const id = query.id as string;
 
-  const today = new Date(Date.now());
-
   const {
     data: goal,
     isLoading,
@@ -125,10 +123,6 @@ export default function CalendarView() {
     return <div>Goal not found</div>;
   }
 
-  const date = new Date();
-
-  const monthDays = daysInMonth(date.getMonth(), date.getFullYear());
-
   async function onCheck(input: OnCheckInputI) {
     await mutation({
       done: input.checked,
@@ -138,10 +132,17 @@ export default function CalendarView() {
     });
   }
 
-  const rows = Math.ceil(monthDays.getDate() / 7);
+  const rows = 6;
+  const year = 2023;
+  const month = 0;
+
+  const today = new Date(Date.now());
+  const firstDayOfWeek = new Date(year, month, 1).getDay();
+
   return (
     <CalendarLayout>
       <h2>{goal?.title}</h2>
+      <h3>{goal.description}</h3>
       <table>
         <thead>
           <tr>
@@ -156,30 +157,30 @@ export default function CalendarView() {
               return (
                 <tr key={row}>
                   {[...Array(7).keys()].map((cell) => {
-                    const thisday = row * 7 + cell;
-                    return (
-                      <td key={`${row}-${cell}`}>
-                        <DayCard
-                          key={thisday}
-                          id={thisday}
-                          onCheck={onCheck}
-                          day={
-                            new Date(
-                              date.getFullYear(),
-                              date.getMonth(),
-                              thisday - 1
-                            )
-                          }
-                          isToday={thisday === today.getDate() + 1}
-                          dayContent={goal?.days.find(
-                            (day) =>
-                              day.date.getFullYear() === date.getFullYear() &&
-                              day.date.getMonth() === date.getMonth() &&
-                              day.date.getDate() === thisday - 1
-                          )}
-                        />
-                      </td>
-                    );
+                    const thisday = row * 7 + cell + 1;
+
+                    if (thisday >= firstDayOfWeek) {
+                      return (
+                        <td key={`${row}-${cell}`}>
+                          <DayCard
+                            key={thisday}
+                            id={thisday}
+                            onCheck={onCheck}
+                            day={new Date(year, month, thisday)}
+                            isToday={thisday === today.getDate()}
+                            dayContent={goal?.days.find(
+                              (day) =>
+                                day.date.getFullYear() ===
+                                  today.getFullYear() &&
+                                day.date.getMonth() === today.getMonth() &&
+                                day.date.getDate() === today.getDate()
+                            )}
+                          />
+                        </td>
+                      );
+                    } else {
+                      return <td key={`${row}-${cell}`}></td>;
+                    }
                   })}
                 </tr>
               );
