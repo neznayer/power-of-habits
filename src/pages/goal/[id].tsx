@@ -2,16 +2,53 @@ import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 import { trpc } from "../../utils/trpc";
 import { createContext } from "react";
-import type { daySchema } from "../../server/trpc/router/day";
-import type { z } from "zod";
 import { Checkbox } from "../../components/Checkbox";
 import { useReward } from "react-rewards";
 import { CalendarLayout } from "../layouts/calendar";
 import { MonthControl } from "../../components/MonthControl";
+import { DaysInRow } from "../../components/DaysInRow";
+import type { Day, Goal } from "@prisma/client";
 
 const CalendarContext = createContext<string | undefined>("");
 
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function getDayFromGoal(goal: Goal & { days: Day[] }, currentDay: Date) {
+  const result = goal.days.find(
+    (day) =>
+      day.date.getFullYear() === currentDay.getFullYear() &&
+      day.date.getMonth() === currentDay.getMonth() &&
+      day.date.getDate() === currentDay.getDate()
+  );
+
+  return result;
+}
+
+function getModeFromGoalDay(
+  goal: Goal & { days: Day[] },
+  currentDay: Date
+): "start" | "middle" | "end" | "" {
+  const curDate = new Date(currentDay);
+  const thisDay = getDayFromGoal(goal, currentDay);
+  const prevDay = getDayFromGoal(
+    goal,
+    new Date(curDate.setDate(curDate.getDate() - 1))
+  );
+  const nextDay = getDayFromGoal(
+    goal,
+    new Date(curDate.setDate(curDate.getDate() + 2))
+  );
+
+  if (prevDay?.done && thisDay?.done && nextDay?.done) {
+    return "middle";
+  } else if (prevDay?.done && thisDay?.done && !nextDay?.done) {
+    return "end";
+  } else if (!prevDay?.done && thisDay?.done && nextDay?.done) {
+    return "start";
+  }
+
+  return "";
+}
 
 interface OnCheckInputI {
   checked: boolean;
@@ -29,7 +66,7 @@ function DayCard({
 }: {
   day: Date;
   onCheck: ({}: OnCheckInputI) => void;
-  dayContent?: z.infer<typeof daySchema>;
+  dayContent?: Day;
   id: number;
   isToday: boolean;
 }) {
@@ -57,13 +94,16 @@ function DayCard({
   return (
     <div
       className={
-        "flex flex-col text-sm" +
+        "flex h-full flex-col items-center text-sm" +
         (isToday && " rounded border-2 border-orange-200")
       }
     >
-      <p>{day.getDate()}</p>
+      <div className="w-full">
+        <p>{day.getDate()}</p>
+      </div>
 
       <Checkbox
+        className="mt-3"
         checked={dayContent ? dayContent.done : false}
         onCheck={handleCheck}
         id={"" + id}
@@ -103,8 +143,6 @@ export default function CalendarView() {
     onMutate: async (update) => {
       await utils.goal.getById.cancel();
 
-      const prevData = utils.day.getDaysByGoalId.getData({ id });
-
       utils.goal.getById.setData({ id }, (old) => {
         if (old) {
           const isNewDay = !old?.days.some((day) => day.id === update.id);
@@ -123,8 +161,6 @@ export default function CalendarView() {
           return { ...old, days: optimisticDays };
         }
       });
-
-      return { prevData };
     },
     onSettled: () => {
       utils.goal.getById.invalidate();
@@ -155,6 +191,16 @@ export default function CalendarView() {
       <h2>{goal?.title}</h2>
       <h3>{goal.description}</h3>
       {calendarMonth.getFullYear()}
+      <button
+        onClick={() => {
+          setYear(today.getFullYear());
+          setMonth(today.getMonth());
+        }}
+        className="mr-2 mb-2 rounded-lg bg-gradient-to-r from-red-200 via-red-300 to-yellow-200 px-5 py-2.5 text-center text-sm font-medium text-gray-900 hover:bg-gradient-to-bl focus:outline-none focus:ring-4 focus:ring-red-100 dark:focus:ring-red-400"
+      >
+        Today
+      </button>
+
       <MonthControl
         onMonthDecrease={() => setMonth(month - 1)}
         onMonthIncrease={() => setMonth(month + 1)}
@@ -184,7 +230,10 @@ export default function CalendarView() {
                     );
                     if (thisday > firstDayOfWeek) {
                       return (
-                        <td key={`${row}-${cell}`}>
+                        <td
+                          key={`${row}-${cell}`}
+                          className="relative h-[70px] w-[50px]"
+                        >
                           <DayCard
                             key={thisday}
                             id={thisday}
@@ -203,6 +252,9 @@ export default function CalendarView() {
                                 day.date.getDate() === currentDay.getDate()
                             )}
                           />
+                          <DaysInRow
+                            mode={getModeFromGoalDay(goal, currentDay)}
+                          ></DaysInRow>
                         </td>
                       );
                     } else {
