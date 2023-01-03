@@ -6,7 +6,6 @@ import { Checkbox } from "../../components/Checkbox";
 import { useReward } from "react-rewards";
 import { CalendarLayout } from "../layouts/calendar";
 import { MonthControl } from "../../components/MonthControl";
-import { DaysInRow } from "../../components/DaysInRow";
 import type { Day, Goal } from "@prisma/client";
 
 const CalendarContext = createContext<string | undefined>("");
@@ -63,12 +62,14 @@ function DayCard({
   dayContent,
   id,
   isToday,
+  mode,
 }: {
   day: Date;
   onCheck: ({}: OnCheckInputI) => void;
   dayContent?: Day;
   id: number;
   isToday: boolean;
+  mode: "start" | "end" | "middle" | "";
 }) {
   const { reward: confettiReward } = useReward("" + id, "confetti", {
     startVelocity: 15,
@@ -76,6 +77,22 @@ function DayCard({
     decay: 0.9,
     spread: 180,
   });
+
+  let className = "";
+
+  switch (mode) {
+    case "start":
+      className += " rounded-l-full w-full left-[50%] translate-x-[-15px] ";
+      break;
+    case "end":
+      className += " rounded-r-full w-full right-[50%] translate-x-[15px] ";
+      break;
+    case "middle":
+      className += " w-[115%]";
+      break;
+    default:
+      break;
+  }
 
   const goalId = useContext(CalendarContext) as unknown as string;
 
@@ -94,20 +111,25 @@ function DayCard({
   return (
     <div
       className={
-        "flex h-full flex-col items-center text-sm" +
-        (isToday && " rounded border-2 border-orange-200")
+        "flex h-full flex-col items-center rounded border-2 " +
+        (isToday ? " border-orange-200" : " border-transparent")
       }
     >
       <div className="w-full">
         <p>{day.getDate()}</p>
       </div>
 
-      <Checkbox
-        className="mt-3"
-        checked={dayContent ? dayContent.done : false}
-        onCheck={handleCheck}
-        id={"" + id}
-      />
+      <div className="relative flex h-[30px] w-full flex-row justify-center">
+        <div
+          className={"absolute top-[0.6em] h-full bg-orange-300" + className}
+        ></div>
+        <Checkbox
+          className="mt-3"
+          checked={dayContent ? dayContent.done : false}
+          onCheck={handleCheck}
+          id={"" + id}
+        />
+      </div>
     </div>
   );
 }
@@ -228,6 +250,11 @@ export default function CalendarView() {
                       month,
                       thisday - firstDayOfWeek
                     );
+
+                    const isToday =
+                      currentDay.getDate() === today.getDate() &&
+                      currentDay.getMonth() === today.getMonth() &&
+                      currentDay.getFullYear() === today.getFullYear();
                     if (thisday > firstDayOfWeek) {
                       return (
                         <td
@@ -239,11 +266,7 @@ export default function CalendarView() {
                             id={thisday}
                             onCheck={onCheck}
                             day={currentDay}
-                            isToday={
-                              currentDay.getDate() === today.getDate() &&
-                              currentDay.getMonth() === today.getMonth() &&
-                              currentDay.getFullYear() === today.getFullYear()
-                            }
+                            isToday={isToday}
                             dayContent={goal?.days.find(
                               (day) =>
                                 day.date.getFullYear() ===
@@ -251,10 +274,8 @@ export default function CalendarView() {
                                 day.date.getMonth() === currentDay.getMonth() &&
                                 day.date.getDate() === currentDay.getDate()
                             )}
-                          />
-                          <DaysInRow
                             mode={getModeFromGoalDay(goal, currentDay)}
-                          ></DaysInRow>
+                          />
                         </td>
                       );
                     } else {
