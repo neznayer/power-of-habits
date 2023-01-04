@@ -4,9 +4,10 @@ import { trpc } from "../../utils/trpc";
 import { createContext } from "react";
 import { Checkbox } from "../../components/Checkbox";
 import { useReward } from "react-rewards";
-import { CalendarLayout } from "../layouts/calendar";
+
 import { MonthControl } from "../../components/MonthControl";
 import type { Day, Goal } from "@prisma/client";
+import { CalendarLayout } from "../layouts/Calendar";
 
 const CalendarContext = createContext<string | undefined>("");
 
