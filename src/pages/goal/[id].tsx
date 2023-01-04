@@ -5,7 +5,7 @@ import { createContext } from "react";
 import { Checkbox } from "../../components/Checkbox";
 import { useReward } from "react-rewards";
 import { MonthControl } from "../../components/MonthControl";
-import { CalendarLayout } from "../layouts/Calendar";
+import { CalendarLayout } from "../../layouts/Calendar";
 
 import type { Day } from "@prisma/client";
 import type { Goal } from "@prisma/client";
