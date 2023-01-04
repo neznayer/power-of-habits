@@ -70,11 +70,9 @@ model Goal {
 }
 
 model Day {
-  id        String   @id @default(cuid())
-  date      DateTime
-  done      Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  goal      Goal     @relation(fields: [goalId], references: [id])
-  goalId    String
+  id     String   @id @default(cuid())
+  date   DateTime
+  done   Boolean  @default(false)
+  goal   Goal     @relation(fields: [goalId], references: [id])
+  goalId String
 }

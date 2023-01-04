@@ -4,10 +4,11 @@ import { trpc } from "../../utils/trpc";
 import { createContext } from "react";
 import { Checkbox } from "../../components/Checkbox";
 import { useReward } from "react-rewards";
-
 import { MonthControl } from "../../components/MonthControl";
-import type { Day, Goal } from "@prisma/client";
 import { CalendarLayout } from "../layouts/Calendar";
+
+import type { Day } from "@prisma/client";
+import type { Goal } from "@prisma/client";
 
 const CalendarContext = createContext<string | undefined>("");
 
@@ -52,7 +53,7 @@ function getModeFromGoalDay(
 
 interface OnCheckInputI {
   checked: boolean;
-  dayId?: string;
+  dayId: string;
   day: Date;
   goalId: string;
 }
