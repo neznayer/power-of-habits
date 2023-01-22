@@ -2,6 +2,7 @@ import Link from "next/link";
 import { FaTimes } from "react-icons/fa";
 import type { GoalType } from "../server/trpc/router/goal";
 import { trpc } from "../utils/trpc";
+import { GoalListItem } from "./GoalListItem";
 
 function Goal({ goal }: { goal: GoalType }) {
   const utils = trpc.useContext();
@@ -30,22 +31,22 @@ function Goal({ goal }: { goal: GoalType }) {
 export function GoalList({ goals }: { goals: GoalType[] | undefined }) {
   return (
     <>
-      {goals && (
-        <table className="table-auto">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Description</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
+      {
+        goals && (
+          <section className="flex w-full content-center">
             {goals.map((goal) => (
-              <Goal key={goal.id} goal={goal} />
+              <Link key={goal.id} href={`/goal/${goal.id}`}>
+                <GoalListItem
+                  title={goal.title}
+                  description={goal.description}
+                  icon="👍"
+                  percentage={12}
+                />
+              </Link>
             ))}
-          </tbody>
-        </table>
-      )}
+          </section>
+        )
+      }
     </>
   );
 }
