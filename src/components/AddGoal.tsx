@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { trpc } from "../utils/trpc";
+import { Button } from "./Button";
+import { Input } from "./Input";
 
 export function AddGoal({ onAdd }: { onAdd: () => void }) {
   const [goal, setGoal] = useState({ title: "", description: "" });
@@ -26,32 +28,19 @@ export function AddGoal({ onAdd }: { onAdd: () => void }) {
     >
       <div>
         <label htmlFor="title">Title</label>
-        <input
-          type="text"
-          name="title"
-          id="title"
-          value={goal.title}
-          onInput={handleInput}
-          className="rounded border-2 border-solid border-slate-400"
-        />
+        <Input type="text" name="title" id="title" onInput={handleInput} />
       </div>
       <div>
         <label htmlFor="description">Description</label>
-        <input
+        <Input
           type="text"
           name="description"
           id="description"
           value={goal.description}
           onInput={handleInput}
-          className="rounded border-2 border-solid border-slate-400"
         />
       </div>
-      <button
-        type="submit"
-        className="inline-block w-[100px] border bg-orange-300"
-      >
-        Submit
-      </button>
+      <Button type="submit">Submit</Button>
     </form>
   );
 }

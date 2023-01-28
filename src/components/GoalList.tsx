@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FaTimes } from "react-icons/fa";
+import { FaTimes, FaTrashAlt } from "react-icons/fa";
 import type { GoalType } from "../server/trpc/router/goal";
 import { trpc } from "../utils/trpc";
 
@@ -14,17 +14,24 @@ function Goal({ goal }: { goal: GoalType }) {
   }
 
   return (
-    <tr key={goal.id}>
-      <td>
+    <div className="grid w-full grid-cols-3 grid-rows-2 p-2" key={goal.id}>
+      <div className="row-span-2 row-start-1 self-center">icon</div>
+      <div className=" col-start-2 row-start-1"> Title</div>
+      <div className=" col-start-2 row-start-2"> Description</div>
+      <div className=" col-start-3 row-span-2 row-start-1 self-center justify-self-center">
+        <FaTrashAlt />
+      </div>
+      {/* <div className="h-full rounded-full">icon</div>
+      <div>
         <Link href={`/goal/${goal.id}`}> {goal.title}</Link>
-      </td>
+      </div>
       <td>{goal.description}</td>
       <td>
         <button onClick={() => handleDelete(goal.id)}>
           <FaTimes />
         </button>
-      </td>
-    </tr>
+      </td> */}
+    </div>
   );
 }
 export function GoalList({ goals }: { goals: GoalType[] | undefined }) {

@@ -7,7 +7,10 @@ interface Props extends ComponentPropsWithoutRef<"button"> {
 
 export const Button = ({ children, className, ...props }: Props) => {
   return (
-    <button className={`rounded-xl p-2 ${className}`} {...props}>
+    <button
+      className={`flex items-center justify-center gap-1 rounded-xl bg-color_accent p-2 text-ocean ${className}`}
+      {...props}
+    >
       {children}
     </button>
   );
