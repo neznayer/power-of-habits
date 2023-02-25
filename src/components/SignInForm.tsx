@@ -24,7 +24,9 @@ export const SignInForm = () => {
           <span>Sign in</span>
         </Button>
         <Divider text="or" />
-        <Button onClick={() => signIn("google")}>
+        <Button
+          onClick={() => signIn("google", undefined, { prompt: "login" })}
+        >
           <Image
             width={24}
             height={24}

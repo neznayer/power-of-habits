@@ -20,27 +20,27 @@ function Goal({
     (goal.currentDoneNumber ? goal.currentDoneNumber : 0) / goal.overallNumber;
 
   return (
-    <section className="flex w-[40%] min-w-fit max-w-[400px] gap-2 p-2">
+    <section
+      className="flex gap-2 rounded-md p-2"
+      style={{ backgroundColor: stc(goal.id) }}
+    >
       <Link
         href={`/goal/${goal.id}`}
-        className="grid w-full max-w-lg grid-cols-[50px_1fr_50px] grid-rows-2"
-        style={{ backgroundColor: stc(goal.id) }}
+        className="grid w-full max-w-lg grid-cols-[70px_1fr_50px] grid-rows-2"
       >
         <div className="row-span-2 row-start-1 self-center text-4xl">
-          <em-emoji id={goal.emoji} />
+          <DoughnutChart size={70} progress={progress} color={stc(goal.id)}>
+            <em-emoji id={goal.emoji} />
+          </DoughnutChart>
         </div>
         <div className=" col-start-2 row-start-1 text-lg">{goal.title}</div>
         <div className=" col-start-2 row-start-2 text-sm">
           {goal.description}
         </div>
-        <div className=" col-start-3 row-span-2 self-center">
-          <DoughnutChart progress={progress} color={stc(goal.id)} />
-        </div>
       </Link>
-
-      <div className="flex items-center">
+      <div className=" flex items-center justify-center">
         <FaTrashAlt
-          className=" cursor-pointer"
+          className=" cursor-pointer opacity-50 mix-blend-multiply"
           onClick={(e) => {
             e.stopPropagation();
             handleDelete(goal.id);
@@ -58,11 +58,11 @@ export function GoalList({
   onDelete: (id: string) => void;
 }) {
   return (
-    <>
+    <section className=" flex flex-col gap-4">
       {goals &&
         goals.map((goal, index) => (
           <Goal key={goal.id || index} onDelete={onDelete} goal={goal} />
         ))}
-    </>
+    </section>
   );
 }

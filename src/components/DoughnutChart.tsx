@@ -1,8 +1,8 @@
 "use client";
 import { type ScaleLinear, scaleLinear } from "d3-scale";
-import { select, type Selection } from "d3-selection";
-import { type Arc, arc, type DefaultArcObject, pie, type Pie } from "d3-shape";
-import { useEffect, useRef, useState } from "react";
+import { type Selection, select } from "d3-selection";
+import { type Arc, type DefaultArcObject, type Pie, arc, pie } from "d3-shape";
+import { type PropsWithChildren, useEffect, useRef, useState } from "react";
 
 type TConstants = {
   scale: ScaleLinear<number, number, null>;
@@ -16,33 +16,35 @@ type TDatum = {
   value: number;
 };
 
+interface TProps extends PropsWithChildren {
+  progress: number;
+  color: string;
+  size: number;
+}
+
 export default function DoughnutChart({
   progress,
   color,
-}: {
-  progress: number;
-  color: string;
-}) {
+  size,
+  children,
+}: TProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [constants, setConstants] = useState({} as TConstants);
 
   useEffect(() => {
     if (svgRef.current) {
-      console.log("useeffect");
       const svg = select<SVGSVGElement, null>(svgRef.current);
-      const width = +svg.attr("width");
-      const height = +svg.attr("height");
-      const R = Math.min(width, height) / 2;
+      const R = size / 2;
       const scale = scaleLinear()
         .domain([0, 1])
         .range([0, Math.PI * 2]);
       const arcGen: Arc<SVGPathElement, DefaultArcObject> = arc()
-        .innerRadius(R * 0.5)
+        .innerRadius(R * 0.7)
         .outerRadius(R * 0.9);
 
       const g = svg
         .append("g")
-        .attr("transform", `translate(${width / 2}, ${height / 2})`);
+        .attr("transform", `translate(${size / 2}, ${size / 2})`);
 
       const pieGenerator = pie<TDatum>()
         .value((d) => d.value)
@@ -55,7 +57,7 @@ export default function DoughnutChart({
         pieGenerator,
       });
     }
-  }, []);
+  }, [size]);
 
   useEffect(() => {
     if (constants.arcGen) {
@@ -71,12 +73,21 @@ export default function DoughnutChart({
         .attr("d", constants.arcGen)
         .attr("fill", color)
         .attr("opacity", (d) => {
-          if (d.data.name === "progress") return 1;
+          if (d.data.name === "progress") return 0.8;
           return 0.1;
-        })
-        .attr("");
+        });
     }
   }, [progress, constants, color]);
 
-  return <svg width="30" height="30" ref={svgRef}></svg>;
+  return (
+    <div className=" relative flex items-center justify-center">
+      <svg
+        width={size}
+        height={size}
+        ref={svgRef}
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mix-blend-multiply"
+      ></svg>
+      {children}
+    </div>
+  );
 }
