@@ -2,6 +2,7 @@ import Link from "next/link";
 import { FaTrashAlt } from "react-icons/fa";
 import stc from "string-to-color";
 import type { GoalType } from "../server/trpc/router/goal";
+import DoughnutChart from "./DoughnutChart";
 
 function Goal({
   goal,
@@ -10,16 +11,19 @@ function Goal({
   goal: GoalType;
   onDelete: (id: string) => void;
 }) {
-  async function handleDelete(id: string | undefined) {
+  function handleDelete(id: string | undefined) {
     if (!id) return;
     onDelete(id);
   }
 
+  const progress =
+    (goal.currentDoneNumber ? goal.currentDoneNumber : 0) / goal.overallNumber;
+
   return (
-    <section className="flex w-[40%] min-w-fit max-w-[300px] gap-2 p-2">
+    <section className="flex w-[40%] min-w-fit max-w-[400px] gap-2 p-2">
       <Link
         href={`/goal/${goal.id}`}
-        className="grid w-full max-w-lg grid-cols-[50px_1fr] grid-rows-2"
+        className="grid w-full max-w-lg grid-cols-[50px_1fr_50px] grid-rows-2"
         style={{ backgroundColor: stc(goal.id) }}
       >
         <div className="row-span-2 row-start-1 self-center text-4xl">
@@ -28,6 +32,9 @@ function Goal({
         <div className=" col-start-2 row-start-1 text-lg">{goal.title}</div>
         <div className=" col-start-2 row-start-2 text-sm">
           {goal.description}
+        </div>
+        <div className=" col-start-3 row-span-2 self-center">
+          <DoughnutChart progress={progress} color={stc(goal.id)} />
         </div>
       </Link>
 
