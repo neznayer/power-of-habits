@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { FaTrashAlt } from "react-icons/fa";
-import type { GoalType } from "../server/trpc/router/goal";
 import stc from "string-to-color";
-
+import type { GoalType } from "../server/trpc/router/goal";
 
 function Goal({
   goal,
@@ -21,6 +20,7 @@ function Goal({
       <Link
         href={`/goal/${goal.id}`}
         className="grid w-full max-w-lg grid-cols-[50px_1fr] grid-rows-2"
+        style={{ backgroundColor: stc(goal.id) }}
       >
         <div className="row-span-2 row-start-1 self-center text-4xl">
           <em-emoji id={goal.emoji} />

@@ -16,10 +16,17 @@ export const updateDaySchema = createDaySchema.extend({
 export const dateRouter = router({
   create: protectedProcedure
     .input(createDaySchema)
-    .mutation(({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       const { prisma } = ctx;
       const { date, goalId, done } = input;
 
+      const currentGoal = await ctx.prisma.goal.findFirstOrThrow({
+        where: { id: goalId },
+      });
+      ctx.prisma.goal.update({
+        where: { id: goalId },
+        data: { currentDoneNumber: currentGoal.currentDoneNumber + 1 },
+      });
       return prisma.day.create({
         data: {
           date,
@@ -45,8 +52,21 @@ export const dateRouter = router({
     }),
   update: protectedProcedure
     .input(updateDaySchema)
-    .mutation(({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       const { prisma } = ctx;
+
+      const currentGoal = await ctx.prisma.goal.findFirstOrThrow({
+        where: { id: input.goalId },
+      });
+
+      await ctx.prisma.goal.update({
+        where: { id: input.goalId },
+        data: {
+          currentDoneNumber: input.done
+            ? currentGoal.currentDoneNumber + 1
+            : currentGoal.currentDoneNumber - 1,
+        },
+      });
 
       return prisma.day.upsert({
         where: { id: input.id },

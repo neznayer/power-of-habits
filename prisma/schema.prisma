@@ -61,13 +61,15 @@ model VerificationToken {
 }
 
 model Goal {
-  id          String @id @default(cuid())
-  title       String
-  description String
-  userId      String
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  days        Day[]
-  emoji       String
+  id                String @id @default(cuid())
+  title             String
+  description       String
+  userId            String
+  user              User   @relation(fields: [userId], references: [id])
+  days              Day[]
+  emoji             String @default("+1")
+  overallNumber     Int
+  currentDoneNumber Int    @default(0)
 }
 
 model Day {

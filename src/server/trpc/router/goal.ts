@@ -6,27 +6,32 @@ export const GoalSchema = z.object({
   description: z.string().default(""),
   id: z.string().optional(),
   emoji: z.string().optional(),
+  overallNumber: z.number({
+    required_error: "A goal total number is required",
+  }),
+  currentDoneNumber: z.number().optional(),
 });
 
 export type GoalType = z.infer<typeof GoalSchema>;
 
 export const goalRouter = router({
   create: protectedProcedure.input(GoalSchema).mutation(({ ctx, input }) => {
-    const { prisma, session } = ctx;
+    const { session } = ctx;
     const userId = session.user.id;
 
-    const { title, description } = input;
+    const { title, description, emoji, overallNumber } = input;
 
-    return prisma.goal.create({
+    return ctx.prisma.goal.create({
       data: {
         title,
         description,
+        emoji: emoji || "+1",
+        overallNumber,
         user: {
           connect: {
             id: userId,
           },
         },
-        emoji: input.emoji || "",
       },
     });
   }),

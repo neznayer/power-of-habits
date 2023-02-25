@@ -45,6 +45,7 @@ const Goals = () => {
   const utils = trpc.useContext();
 
   const handleAdd = async (goal: GoalType) => {
+    console.log(goal);
     addMutation(goal);
   };
 

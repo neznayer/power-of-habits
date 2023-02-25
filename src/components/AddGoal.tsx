@@ -1,4 +1,4 @@
-import { type SyntheticEvent, useState, useRef } from "react";
+import { type SyntheticEvent, useState, useRef, type ChangeEvent } from "react";
 import { type GoalType } from "../server/trpc/router/goal";
 import { Button } from "./Button";
 import { Input } from "./Input";
@@ -20,11 +20,18 @@ import {
 import { init } from "emoji-mart";
 init({ data });
 
+const initialInput: GoalType = {
+  emoji: "+1",
+  title: "",
+  description: "",
+  currentDoneNumber: 0,
+  overallNumber: 1,
+};
+
 export function AddGoal({ onAdd }: { onAdd: (goal: GoalType) => void }) {
-  const [goal, setGoal] = useState({ title: "", description: "" });
   const [addingMode, setAddingMode] = useState<boolean>(false);
-  const [emojiId, setEmojiId] = useState("+1");
   const [isOpen, setIsOpen] = useState(false);
+  const [entryGoal, setEntryGoal] = useState(initialInput);
   const arrowRef = useRef<HTMLDivElement>(null);
   const {
     x,
@@ -52,22 +59,28 @@ export function AddGoal({ onAdd }: { onAdd: (goal: GoalType) => void }) {
     role,
   ]);
 
-  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setGoal((prev) => {
-      return { ...prev, [e.target.name]: e.target.value };
-    });
-  };
-
   const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
 
-    const isValid = !!goal.title;
-    const formData = new FormData(e.target as HTMLFormElement);
+    const isValid = !!entryGoal.title && !!entryGoal.description;
 
     if (isValid) {
-      onAdd(Object.fromEntries(formData) as GoalType);
+      onAdd(entryGoal);
     }
   };
+
+  function handleChange(e: ChangeEvent<HTMLInputElement>) {
+    const parsedValue = parseValue({
+      name: e.target.name as keyof typeof TypesOfNames,
+      value: e.target.value,
+    });
+
+    console.log(typeof parsedValue);
+    console.log(parsedValue);
+    setEntryGoal((prev) => {
+      return { ...prev, [e.target.name]: parsedValue };
+    });
+  }
 
   const staticSide =
     {
@@ -96,7 +109,7 @@ export function AddGoal({ onAdd }: { onAdd: (goal: GoalType) => void }) {
                 >
                   <Picker
                     onEmojiSelect={(em: Emoji) => {
-                      setEmojiId(em.id);
+                      setEntryGoal((prev) => ({ ...prev, emoji: em.id }));
                       setIsOpen(false);
                     }}
                   />
@@ -119,7 +132,7 @@ export function AddGoal({ onAdd }: { onAdd: (goal: GoalType) => void }) {
               {...getReferenceProps()}
               className="col-start-1 row-span-2 flex h-20 w-20 cursor-pointer items-center justify-center self-center rounded-full text-4xl transition-colors hover:bg-color_accent"
             >
-              <em-emoji id={emojiId} />
+              <em-emoji id={entryGoal.emoji} />
             </div>
             <input
               type="text"
@@ -127,29 +140,34 @@ export function AddGoal({ onAdd }: { onAdd: (goal: GoalType) => void }) {
               hidden
               name="emoji"
               id="emoji"
-              value={emojiId}
+              value={entryGoal.emoji}
+              onChange={handleChange}
             />
 
-            <div className="col-start-2 row-start-1 text-lg">
-              <label htmlFor="title">Title</label>
-              <Input
-                onChange={handleInput}
-                type="text"
-                name="title"
-                id="title"
-                onInput={handleInput}
-              />
-            </div>
-            <div className="col-start-2 row-start-2 text-lg">
-              <label htmlFor="description">Description</label>
-              <Input
-                type="text"
-                name="description"
-                id="description"
-                value={goal.description}
-                onInput={handleInput}
-              />
-            </div>
+            <Input
+              className="col-start-2 row-start-1 text-lg"
+              type="text"
+              name="title"
+              id="title"
+              value={entryGoal.title}
+              onChange={handleChange}
+              placeholder="Goal title"
+            />
+
+            <Input
+              className="col-start-2 row-start-2 text-lg"
+              type="text"
+              name="description"
+              value={entryGoal.description}
+              onChange={handleChange}
+              placeholder="Goal description"
+            />
+            <Input
+              type="number"
+              name="overallNumber"
+              value={entryGoal.overallNumber}
+              onChange={handleChange}
+            />
           </section>
           <Button type="submit">Submit</Button>
         </form>
@@ -159,4 +177,25 @@ export function AddGoal({ onAdd }: { onAdd: (goal: GoalType) => void }) {
       )}
     </>
   );
+}
+
+interface TParseInput {
+  name: keyof typeof TypesOfNames;
+  value: string;
+}
+
+enum TypesOfNames {
+  title = "string",
+  description = "string",
+  currentDoneNumber = "number",
+  overallNumber = "number",
+}
+
+function parseValue({ name, value }: TParseInput) {
+  switch (TypesOfNames[name]) {
+    case "string":
+      return value;
+    default:
+      return parseInt(value);
+  }
 }
