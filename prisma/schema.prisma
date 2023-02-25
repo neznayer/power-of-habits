@@ -65,14 +65,15 @@ model Goal {
   title       String
   description String
   userId      String
-  user        User   @relation(fields: [userId], references: [id])
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   days        Day[]
+  emoji       String
 }
 
 model Day {
   id     String   @id @default(cuid())
   date   DateTime
   done   Boolean  @default(false)
-  goal   Goal     @relation(fields: [goalId], references: [id])
+  goal   Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
   goalId String
 }
