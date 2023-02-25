@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 interface Props {
   children?: ReactNode;
+
   className?: string;
 }
 export const Card = ({ className, ...props }: Props) => {
@@ -11,6 +12,7 @@ export const Card = ({ className, ...props }: Props) => {
       {...props}
     >
       {props.children}
+
     </div>
   );
 };

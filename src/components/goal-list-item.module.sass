@@ -1,0 +1,55 @@
+
+$COLOR_1: #9b5de5    
+$COLOR_2: #f15bb5   
+$COLOR_3: #fee440   
+$COLOR_4: #00bbf9  
+$COLOR_5: #00f5d4
+
+.list-item-container 
+    display: grid
+    width: max(300px, 50%)
+    border-radius: 1em
+    grid-template-columns: min-content 1fr min-content
+    grid-template-rows: 1fr 1fr
+    padding: 1em
+    column-gap: 1em
+    row-gap: 0.3em
+    >.icon-container
+        width: 3rem
+        height: 3rem
+        align-self: center
+        justify-self: center
+        background-color: white
+        border-radius: 100%
+        display: flex
+        justify-content: center
+        align-items: center
+        grid-row: 1 / 3
+    >.description
+        grid-row-start: 2
+    >.percentage
+        grid-row: 1 / 3
+        align-self: center
+        padding: 0 1em
+
+.color-1
+    background-color: $COLOR_1
+    .title, .description, .percentage
+        color: white
+
+.color-2
+    background-color: $COLOR_2
+    .title, .description, .percentage
+        color: white
+.color-3
+    background-color: $COLOR_3
+    .title, .description, .percentage
+        color: #333
+.color-4
+    background-color: $COLOR_4
+    .title, .description, .percentage
+        color: #333
+.color-5
+    background-color: $COLOR_5
+    .title, .description, .percentage
+        color: #333

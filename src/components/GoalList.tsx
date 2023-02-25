@@ -3,6 +3,7 @@ import { FaTrashAlt } from "react-icons/fa";
 import type { GoalType } from "../server/trpc/router/goal";
 import stc from "string-to-color";
 
+
 function Goal({
   goal,
   onDelete,
